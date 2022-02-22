@@ -6,8 +6,13 @@ import java.net.Socket;
 import java.util.Scanner;
 
 import static com.company.Main.cerrartodo;
+import java.awt.Rectangle;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import javax.swing.JTextField;
 
 public class HiloCliente extends Thread{
+    Boolean newmesage=false;
     String nick;
     Scanner teclao = new Scanner(System.in);
     boolean bucleinfinito;
@@ -21,12 +26,13 @@ public class HiloCliente extends Thread{
         bucleinfinito=true;
         try {
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+           
             //this.bufferedReader = new BufferedReader(new InputStreamReader())
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    void enviarmensaje(String mensaje){
+    void enviar1ermensaje(String mensaje){
         try {
             bufferedWriter.write(mensaje);
             bufferedWriter.newLine();
@@ -35,8 +41,33 @@ public class HiloCliente extends Thread{
             e.printStackTrace();
         }
     }
-    String enviarmensaje(){
-        String mensaje=teclao.next();
+     void enviarmensaje(String mensaje){
+          mensaje=nick+": "+mensaje;
+        try {
+            bufferedWriter.write(mensaje);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+             Main.jTextArea1.append(mensaje+"\n");
+               newmesage=true;
+                            
+             Main.jScrollPane1.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {  
+public void adjustmentValueChanged(AdjustmentEvent e) {  
+    if(newmesage){
+ e.getAdjustable().setValue(e.getAdjustable().getMaximum());
+    newmesage=false;
+            }
+}});
+                             
+                             
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    //Sin uso
+     String enviarmensaje(JTextField jTextField){
+        
+        String mensaje=jTextField.getText();
         mensaje=nick+": "+mensaje;
         try {
             bufferedWriter.write(mensaje);
@@ -63,12 +94,11 @@ public class HiloCliente extends Thread{
     @Override
     public void run() {
         String mensajecerrar;
-        enviarmensaje(nick);
+        enviar1ermensaje(nick);
         while (bucleinfinito){
             if (!socket.isConnected()){
                 cerrartodo();
             }
-            System.out.println("Introduce el siguiente mensaje...");
            
         }
     }
