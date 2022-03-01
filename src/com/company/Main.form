@@ -138,6 +138,9 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Desconectar"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton3ActionPerformed"/>
+      </Events>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="jButton3.setEnabled(false);&#xd;&#xa;jButton3.setVisible(false);&#xd;&#xa;&#xd;&#xa;"/>
       </AuxValues>

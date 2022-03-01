@@ -10,6 +10,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class Main extends javax.swing.JFrame {
@@ -80,6 +82,11 @@ public class Main extends javax.swing.JFrame {
         });
 
         jButton3.setText("Desconectar");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -181,6 +188,17 @@ public class Main extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField2ActionPerformed
 
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        hiloCliente.enviar1ermensaje("%\"Ju6A9jI2js\"%");
+        cerrartodo();
+        jButton3.setVisible(false);
+        jButton3.setEnabled(false);
+        
+        jButton1.setEnabled(true);
+        jButton1.setVisible(true);
+        
+    }//GEN-LAST:event_jButton3ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -193,11 +211,13 @@ public class Main extends javax.swing.JFrame {
         });
     }
     static void cerrartodo(){
+        HiloCliente.bucleinfinito = false;
         if (socket!=null) {
             try {
                 socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
+                System.out.println("no se ha podido cerrar socket");
             }
         }
             if (bufferedReader!=null){
@@ -208,7 +228,7 @@ public class Main extends javax.swing.JFrame {
                 }
             }
 
-        System.exit(50);
+        
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -221,5 +241,13 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField textonombre;
     // End of variables declaration//GEN-END:variables
+
+    private void cerrar() {
+      try {
+          socket.close();
+      } catch (IOException ex) {
+          System.out.println("usado metodo cerrar");
+      }
+    }
         }
 

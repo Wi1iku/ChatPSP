@@ -33,8 +33,11 @@ public class HiloLector extends Thread{
     @Override
     public void run() {
         System.out.println("asd"+socket.isConnected());
-    while (socket.isConnected()){
+    while (!socket.isClosed()){
            try {
+               if (!socket.isClosed()) {
+                   System.out.println("conectado111111111111111");
+               }
                jTextArea1.append("\n");
                 //jTextArea1.append("111111111111111111");
                 //asd
