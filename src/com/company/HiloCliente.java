@@ -15,7 +15,7 @@ public class HiloCliente extends Thread{
     Boolean newmesage=false;
     String nick;
     Scanner teclao = new Scanner(System.in);
-    boolean bucleinfinito;
+    static boolean bucleinfinito;
     private final Socket socket;
     //private ServerSocket serverSocket;
     BufferedWriter bufferedWriter;
