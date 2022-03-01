@@ -96,10 +96,11 @@ public void adjustmentValueChanged(AdjustmentEvent e) {
         String mensajecerrar;
         enviar1ermensaje(nick);
         while (bucleinfinito){
-            if (!socket.isConnected()){
+            if (socket.isClosed()){
                 cerrartodo();
             }
            
         }
+        System.out.println(this.getName()+" hilo cerrado");
     }
 }

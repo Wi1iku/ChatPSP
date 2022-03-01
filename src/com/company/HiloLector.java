@@ -65,7 +65,7 @@ public void adjustmentValueChanged(AdjustmentEvent e) {
                 cerrartodo();
             }
         }
-    
+    System.out.println(this.getName()+" hilo cerrado11111111111");
     }
     String mensajemayorque(String menssaje){
         
