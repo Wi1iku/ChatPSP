@@ -63,7 +63,7 @@ public class ManejadorCliente extends Thread {
         } catch (Exception e) {
             ip = "Error al guardar ip";
         }
-        entrada = LocalDateTime.now().format(DateTimeFormatter.ofPattern("'[Dia]' dd/MM/yyyy '[Hora del dia]' hh:mm:ss.SSS"));
+        entrada = LocalDateTime.now().format(DateTimeFormatter.ofPattern("'[Dia]' dd/MM/yyyy '[Hora del dia]' HH:mm:ss.SSS"));
         String muchotexto = " ";
         while (!socket.isClosed() && bufferLeer != null) {
             try {
@@ -121,7 +121,7 @@ public class ManejadorCliente extends Thread {
     private void cerrartodo() {
         try {
 
-            salida = LocalDateTime.now().format(DateTimeFormatter.ofPattern("'[Dia]' dd/MM/yyyy '[Hora del dia]' hh:mm:ss.SSS"));
+            salida = LocalDateTime.now().format(DateTimeFormatter.ofPattern("'[Dia]' dd/MM/yyyy '[Hora del dia]' HH:mm:ss.SSS"));
             logg = "Usuario: " + nombre + " /conexion: " + entrada + " /desconexion: " + salida + " /total mensajes: " + totalmensajessesion + "/IP usuario: " + ip + " /";
             salido = true;
             logger.println(logg);
