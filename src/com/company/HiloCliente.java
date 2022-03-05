@@ -135,12 +135,13 @@ public void adjustmentValueChanged(AdjustmentEvent e) {
     public void run() {
         String mensajecerrar;
         enviar1ermensaje(nick);
+        /*  No hace falta tener un bucle aqui.
         while (bucleinfinito){
             if (socket.isClosed()){
                 cerrartodo();
             }
            
-        }
+        }*/
         //System.out.println(this.getName()+" hilo cerrado");
     }
 }
