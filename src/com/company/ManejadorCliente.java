@@ -55,6 +55,8 @@ public class ManejadorCliente extends Thread {
         identificador++;
     }
 
+
+
     @Override
     public void run() {
         try {
@@ -64,7 +66,7 @@ public class ManejadorCliente extends Thread {
             ip = "Error al guardar ip";
         }
         entrada = LocalDateTime.now().format(DateTimeFormatter.ofPattern("'[Dia]' dd/MM/yyyy '[Hora del dia]' HH:mm:ss.SSS"));
-        String muchotexto = " ";
+        String muchotexto = "";
         while (!socket.isClosed() && bufferLeer != null) {
             try {
                 if (!salido) {
@@ -80,7 +82,13 @@ public class ManejadorCliente extends Thread {
                         salido = true;
 
 
-                    } else {
+                    } else if (muchotexto.startsWith("!!")){
+                        muchotexto=muchotexto.substring(2);
+                        System.out.println("cl: #cmd#: " + muchotexto);
+                        comandocliente(muchotexto);
+
+                    }
+                    else {
                         System.out.println("cl: " + muchotexto);
                         broadcast(muchotexto);
                     }
@@ -146,6 +154,91 @@ public class ManejadorCliente extends Thread {
         } catch (Exception e) {
             System.out.println("Error servidor");
             System.out.println(e);
+        }
+    }
+    private void comandocliente(String comadno){
+        String[] aux;
+        aux=comadno.split(" ");
+        switch (aux[0]){
+            case "md":
+            case "mensajedirecto":
+            case"mensaje_directo":
+                mensajedirecto(aux);
+                break;
+            case "help":
+            case "ayuda":
+            case "man":
+                help();
+                break;
+            case "cerrar":
+            case "close":
+            case "stop":
+
+                break;
+            default:
+                comandonoreconocido();
+                break;
+        }
+    }
+    private void comandonoreconocido(){
+        try {
+            this.bufferEscribir.write("Comando no reconocido, para más ayuda, usa !!help");
+            this.bufferEscribir.newLine();
+            this.bufferEscribir.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void help(){
+        try {
+            this.bufferEscribir.write("Comandos disponibles:\n" +
+                    "!!md + nombreusuario o !!mensajedirecto + nombreusuario manda un mensaje privado al usuario indicado\n" +
+                    "!!close o !!cerrar le desconecta del servidor"
+                    +"!!help despliega la ayuda de comandos\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void cerrar(){
+        try {
+            this.bufferEscribir.write("%\"Ju6A9jI2js\"%");
+            this.bufferEscribir.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        cerrartodo();
+    }
+    private void mensajedirecto(String[] datos){
+        if (datos.length!=2){
+            try {
+                this.bufferEscribir.write("Comando mal introducido, por favor introduce en comando con [!!md +(espacio)+nombredeusuario]");
+                this.bufferEscribir.newLine();
+                this.bufferEscribir.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else {
+            ManejadorCliente userpriv = null;
+            for (ManejadorCliente mane:
+                 manejadorClientes) {
+                if (mane.equals(datos[1])){
+                    userpriv=mane;
+                }
+            }
+            if (userpriv!=null){
+                ManejadorPrivado textoprivado = new ManejadorPrivado(socket,logger,bufferEscribir,userpriv);
+            }else {
+
+                try {
+                    this.bufferEscribir.write("Error al abrir chat privado");
+                    this.bufferEscribir.newLine();
+                    this.bufferEscribir.flush();
+                } catch (IOException e) {
+
+
+                }
+            }
+
         }
     }
 }
