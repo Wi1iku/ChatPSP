@@ -13,6 +13,8 @@ import java.awt.event.AdjustmentListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JTextArea;
 
 /**
@@ -34,6 +36,11 @@ public class HiloLector extends Thread {
 
     @Override
     public void run() {
+        try {
+            sleep(800);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(HiloLector.class.getName()).log(Level.SEVERE, null, ex);
+        }
         System.out.println("asd111111111" + socket.isConnected());
         System.out.println("asd222222222"+ socket.isClosed());
         while (!socket.isClosed()) {

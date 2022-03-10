@@ -9,18 +9,48 @@ import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
 
 
 public class Main extends javax.swing.JFrame {
   static Socket socket = null;
     static BufferedReader bufferedReader;
+    static protected PublicKey clavepublicaservidor;
+            PrivateKey claveprivadacliente;
+            PublicKey clavepublidacliente;
  int i =0;
     static HiloCliente hiloCliente;
 
     public Main() {
+      try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(512);
+            KeyPair claves = keyPairGenerator.generateKeyPair();
+             claveprivadacliente= claves.getPrivate();
+             clavepublidacliente = claves.getPublic();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+
+        try {
+            Cipher cipher = Cipher.getInstance("RSA");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        }
         initComponents();
     }
 
@@ -43,6 +73,8 @@ public class Main extends javax.swing.JFrame {
         jButton3 = new javax.swing.JButton();
         jButton3.setEnabled(false);
         jButton3.setVisible(false);
+
+        jButton4 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -88,6 +120,13 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
+        jButton4.setText("Enviar Paquete");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -106,7 +145,8 @@ public class Main extends javax.swing.JFrame {
                                 .addComponent(jButton3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButton1)
-                                .addGap(0, 0, Short.MAX_VALUE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jButton4))
                             .addComponent(jScrollPane1)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(textonombre, javax.swing.GroupLayout.PREFERRED_SIZE, 192, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -124,7 +164,8 @@ public class Main extends javax.swing.JFrame {
                 .addGap(51, 51, 51)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
-                    .addComponent(jButton3))
+                    .addComponent(jButton3)
+                    .addComponent(jButton4))
                 .addGap(32, 32, 32)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
@@ -147,6 +188,7 @@ public class Main extends javax.swing.JFrame {
                 try {
             socket = new Socket(ip,1050);
             jTextArea1.append("Conectado a la sala de chat\n");
+            
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("error");
@@ -158,11 +200,14 @@ public class Main extends javax.swing.JFrame {
         } catch (IOException e) {
             cerrartodo();
         }
-        hiloCliente= new HiloCliente(socket,nombre);
+        //System.out.println("llegado1");
+        hiloCliente= new HiloCliente(socket,nombre,clavepublidacliente);
         HiloLector hiloLector = new HiloLector(jTextArea1, socket,bufferedReader);
         //System.out.println("test");
+        //System.out.println("llegado2");
         hiloCliente.start();
-        hiloLector.start();
+      
+       hiloLector.start();
         try {
             
         
@@ -199,6 +244,13 @@ public class Main extends javax.swing.JFrame {
         jButton1.setVisible(true);
         
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+       byte[] arraybytes = "hello".getBytes();
+        for (byte arraybyte : arraybytes) {
+            System.out.print(arraybyte+" ");
+        }
+    }//GEN-LAST:event_jButton4ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -251,6 +303,7 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
     static javax.swing.JScrollPane jScrollPane1;
     static javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextField jTextField1;

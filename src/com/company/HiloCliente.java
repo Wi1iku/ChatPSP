@@ -9,37 +9,91 @@ import static com.company.Main.cerrartodo;
 import java.awt.Rectangle;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.JTextField;
 
 public class HiloCliente extends Thread{
     Boolean newmesage=false;
     String nick;
     Scanner teclao = new Scanner(System.in);
+    PublicKey clavepublica;
     static boolean bucleinfinito;
     private final Socket socket;
+    Cipher cipher;
     //private ServerSocket serverSocket;
     BufferedWriter bufferedWriter;
     static BufferedWriter bufferedWriterstatic;
+    ObjectOutputStream enviarobjeto;
+    ObjectInputStream recibirobjeto;
     //BufferedReader bufferedReader;
-    public HiloCliente(Socket socket, String nick){
+    public HiloCliente(Socket socket, String nick, PublicKey clavepublica){
+        try {
+            
+            this.cipher = Cipher.getInstance("RSA");
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchPaddingException ex) {
+            Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
+        }
         this.socket=socket;
         this.nick=nick;
+        this.clavepublica = clavepublica;
         bucleinfinito=true;
         try {
+            
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-           
-            //this.bufferedReader = new BufferedReader(new InputStreamReader())
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    void enviar1ermensaje(String mensaje){
+    void enviar1ermensajestring(String mensaje){
         try {
             bufferedWriter.write(mensaje);
             bufferedWriter.newLine();
             bufferedWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+    void enviar1ermensaje(String mensaje){
+        try {
+            sleep(20);
+            enviarobjeto.writeObject(clavepublica);
+            System.out.println("objetoenviado");
+        } catch (IOException ex) {
+            Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+           Main.clavepublicaservidor=(PublicKey)recibirobjeto.readObject();
+            System.out.println("ClavePublicaRecibida");
+                    } catch (IOException ex) {
+            Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //mensaje=mensaje+"\n";
+        try {
+            cipher.init(Cipher.ENCRYPT_MODE, Main.clavepublicaservidor);
+        } catch (InvalidKeyException ex) {
+            Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            byte[] mensajeCifrado = cipher.doFinal((mensaje).getBytes());
+            enviarobjeto.writeObject(mensajeCifrado);
+            enviarobjeto.flush();
+        } catch (IOException | IllegalBlockSizeException | BadPaddingException ex) {
+            Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     static void enviarmensajecerrar(){
@@ -133,6 +187,17 @@ public void adjustmentValueChanged(AdjustmentEvent e) {
     }
     @Override
     public void run() {
+        try {
+            enviarobjeto = new ObjectOutputStream(socket.getOutputStream());
+        } catch (IOException ex) {
+            Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            //this.bufferedReader = new BufferedReader(new InputStreamReader())
+            recibirobjeto= new ObjectInputStream(socket.getInputStream());
+        } catch (IOException ex) {
+            Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
+        }
         String mensajecerrar;
         enviar1ermensaje(nick);
         /*  No hace falta tener un bucle aqui.
