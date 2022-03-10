@@ -1,11 +1,21 @@
 package com.company;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.net.Inet4Address;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
 
 public class ManejadorCliente extends Thread {
     public static ArrayList<ManejadorCliente> manejadorClientes = new ArrayList<>();
@@ -23,23 +33,64 @@ public class ManejadorCliente extends Thread {
 
     private BufferedReader bufferLeer;
     private BufferedWriter bufferEscribir;
+    private ObjectOutputStream bufferObjetoSalida;
+    private ObjectInputStream bufferObjetoEntrada;
+    private PublicKey clavepublicacliente;
+    private PrivateKey claveprivadaservidor;
+    private PublicKey clavepublicaservidor;
+    private Cipher cipherencriptar;
+    private Cipher cipherdesencriptar;
     boolean salido = false;
 
-    public ManejadorCliente(Socket socket, PrintWriter logger) {
+    public ManejadorCliente(Socket socket, PrintWriter logger, PrivateKey claveprivadaservidor, PublicKey clavepublicaservidor) {
         this.socket = socket;
         this.logger = logger;
         try {
             this.bufferLeer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.bufferEscribir = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            this.bufferObjetoEntrada= new ObjectInputStream(socket.getInputStream());
+            this.bufferObjetoSalida = new ObjectOutputStream(socket.getOutputStream());
+            this.cipherencriptar=Cipher.getInstance("RSA");
+            this.cipherdesencriptar=Cipher.getInstance("RSA");
+            this.claveprivadaservidor=claveprivadaservidor;
+            this.clavepublicaservidor=clavepublicaservidor;
+
         } catch (IOException e) {
             //System.out.println("Error en 1 ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo");
 
             cerrartodo();
 
             System.out.println(e);
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
         }
+
+
         try {
-            this.nombre = bufferLeer.readLine();
+            try {
+                System.out.println("test1");
+                clavepublicacliente =(PublicKey)bufferObjetoEntrada.readObject();
+                System.out.println("test2");
+                cipherencriptar.init(Cipher.ENCRYPT_MODE,clavepublicacliente);
+                cipherdesencriptar.init(Cipher.DECRYPT_MODE, claveprivadaservidor);
+                System.out.println("test4");
+                bufferObjetoSalida.writeObject(clavepublicaservidor);
+                System.out.println("test5");
+                byte[] bytesnombre = (byte[])bufferObjetoEntrada.readObject();
+                System.out.println("test6");
+                bytesnombre=cipherdesencriptar.doFinal(bytesnombre);
+               this.nombre = new String(bytesnombre);
+                System.out.println("test7");
+                System.out.println(nombre+"nombre");
+            } catch (ClassNotFoundException | InvalidKeyException e) {
+                System.out.println("error");
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            }
+
         } catch (IOException e) {
             //System.out.println("Error en 2 ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ");
 
@@ -70,6 +121,14 @@ public class ManejadorCliente extends Thread {
         while (!socket.isClosed() && bufferLeer != null) {
             try {
                 if (!salido) {
+                   /* byte[] bytesnuevos = new byte[0];
+                    try {
+                        bytesnuevos = (byte[]) bufferObjetoEntrada.readObject();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                   clavepublicacliente= new String(bytesnuevos);
+                   */
 
                     muchotexto = bufferLeer.readLine();
                     totalmensajessesion++;
@@ -107,6 +166,7 @@ public class ManejadorCliente extends Thread {
                 manejadorClientes) {
             if (!manejador.nombre.equals(this.nombre)) {
                 try {
+                    mensaje="%br%"+mensaje;
                     manejador.bufferEscribir.write(mensaje);
                     manejador.bufferEscribir.newLine();
                     manejador.bufferEscribir.flush();
@@ -226,7 +286,7 @@ public class ManejadorCliente extends Thread {
                 }
             }
             if (userpriv!=null){
-                ManejadorPrivado textoprivado = new ManejadorPrivado(socket,logger,bufferEscribir,userpriv);
+                ManejadorPrivado textoprivado = new ManejadorPrivado(socket,logger,claveprivadaservidor,clavepublicaservidor,bufferEscribir,userpriv);
             }else {
 
                 try {

@@ -1,27 +1,48 @@
 package com.company;
 
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Scanner;
 
 public class Principal extends Thread{
     boolean abierto=true;
     PrintWriter logger;
     ServerSocket serverSocket = null;
     BufferedWriter bufferEscritura = null;
+    PublicKey clavepublicaservidor;
+    PrivateKey claveprivadaservidor;
     public Principal() {
 
     }
 
     @Override
     public void run() {
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(512);
+            KeyPair claves = keyPairGenerator.generateKeyPair();
+             claveprivadaservidor= claves.getPrivate();
+             clavepublicaservidor = claves.getPublic();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
 
+
+        try {
+            Cipher cipher = Cipher.getInstance("RSA");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        }
 
 
         {
@@ -80,7 +101,7 @@ public class Principal extends Thread{
                 if (socket!=null){
                     System.out.println(socket);
 
-                    ManejadorCliente manejadorCliente = new ManejadorCliente(socket,logger);
+                    ManejadorCliente manejadorCliente = new ManejadorCliente(socket,logger,claveprivadaservidor, clavepublicaservidor);
                     manejadorCliente.start();
                 }
 

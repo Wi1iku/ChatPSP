@@ -10,24 +10,7 @@ public class Main{
 
 
     public static void main(String[] args) {
-        try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(512);
-            KeyPair claves = keyPairGenerator.generateKeyPair();
-            PrivateKey claveprivada= claves.getPrivate();
-            PublicKey clavepublida = claves.getPublic();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
 
-
-        try {
-            Cipher cipher = Cipher.getInstance("RSA");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        }
         boolean abierto=true;
         Scanner teclao = new Scanner(System.in);
         String commando;
