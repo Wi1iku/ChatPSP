@@ -41,7 +41,7 @@ public class ManejadorCliente extends Thread {
     private Cipher cipherencriptar;
     private Cipher cipherdesencriptar;
     boolean salido = false;
-
+    PublicKey aux;
     public ManejadorCliente(Socket socket, PrintWriter logger, PrivateKey claveprivadaservidor, PublicKey clavepublicaservidor) {
         this.socket = socket;
         this.logger = logger;
@@ -54,56 +54,63 @@ public class ManejadorCliente extends Thread {
             this.cipherdesencriptar=Cipher.getInstance("RSA");
             this.claveprivadaservidor=claveprivadaservidor;
             this.clavepublicaservidor=clavepublicaservidor;
-
+            System.out.println("test");
+             aux= (PublicKey)bufferObjetoEntrada.readObject();
+            System.out.println("test");
         } catch (IOException e) {
             //System.out.println("Error en 1 ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo");
 
             cerrartodo();
 
-            System.out.println(e);
-        } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
+            System.out.println(e+"error1");
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | ClassNotFoundException e) {
             e.printStackTrace();
         }
-
-
-        try {
+        if (aux==null){
             try {
-                System.out.println("test1");
-                clavepublicacliente =(PublicKey)bufferObjetoEntrada.readObject();
-                System.out.println("test2");
-                cipherencriptar.init(Cipher.ENCRYPT_MODE,clavepublicacliente);
-                cipherdesencriptar.init(Cipher.DECRYPT_MODE, claveprivadaservidor);
-                System.out.println("test4");
-                bufferObjetoSalida.writeObject(clavepublicaservidor);
-                System.out.println("test5");
-                byte[] bytesnombre = (byte[])bufferObjetoEntrada.readObject();
-                System.out.println("test6");
-                bytesnombre=cipherdesencriptar.doFinal(bytesnombre);
-               this.nombre = new String(bytesnombre);
-                System.out.println("test7");
-                System.out.println(nombre+"nombre");
-            } catch (ClassNotFoundException | InvalidKeyException e) {
-                System.out.println("error");
-                e.printStackTrace();
-            } catch (BadPaddingException e) {
-                e.printStackTrace();
-            } catch (IllegalBlockSizeException e) {
-                e.printStackTrace();
+                System.out.println(aux);
+                aux= (PublicKey)bufferObjetoEntrada.readObject();
+                System.out.println(aux+" null?");
+            } catch (IOException | ClassNotFoundException exception) {
+                exception.printStackTrace();
             }
-
-        } catch (IOException e) {
-            //System.out.println("Error en 2 ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ");
-
-            cerrartodo();
-
-            System.out.println(e);
         }
-        manejadorClientes.add(identificador, this);
-        System.out.println("svsided:" + nombre + " conectado al servidor");
-        //System.out.println("AAAA2222222222222222222");
-        broadcast("Servidor: " + nombre + " se ha unido al chat de grupo");
-        //System.out.println("Aaaaaa333333333333333333");
-        identificador++;
+        else {
+
+            try {
+                try {
+                    //Esta parte del codigo espera a que el cliente le mande su clave publica
+                    //para luego mandarle su clave publica al servidor e inicializa 2 ciphers usados
+                    //para encriptar y desencripta
+                    clavepublicacliente = aux;
+                    System.out.println("test0");
+                    cipherencriptar.init(Cipher.ENCRYPT_MODE, clavepublicacliente);
+                    System.out.println("test1");
+                    cipherdesencriptar.init(Cipher.DECRYPT_MODE, claveprivadaservidor);
+                    System.out.println("test2");
+                    bufferObjetoSalida.writeObject(clavepublicaservidor);
+                    System.out.println("test3");
+                    byte[] bytesnombre = (byte[]) bufferObjetoEntrada.readObject();
+                    bytesnombre = cipherdesencriptar.doFinal(bytesnombre);
+                    this.nombre = new String(bytesnombre);
+                } catch (ClassNotFoundException | InvalidKeyException e) {
+                    System.out.println("error");
+                    e.printStackTrace();
+                } catch (BadPaddingException | IllegalBlockSizeException e) {
+                    e.printStackTrace();
+                }
+
+            } catch (IOException e) {
+                cerrartodo();
+                System.out.println(e);
+            }
+            manejadorClientes.add(identificador, this);
+            System.out.println("svsided:" + nombre + " conectado al servidor");
+            //System.out.println("AAAA2222222222222222222");
+            broadcast("Servidor: " + nombre + " se ha unido al chat de grupo");
+            //System.out.println("Aaaaaa333333333333333333");
+            identificador++;
+        }
     }
 
 
@@ -129,14 +136,15 @@ public class ManejadorCliente extends Thread {
                     }
                    clavepublicacliente= new String(bytesnuevos);
                    */
-
-                    muchotexto = bufferLeer.readLine();
+                    //Esta línea recibe el paquete, la pasa desencripta y luego la pasa a bytes
+                    muchotexto = new String(cipherdesencriptar.doFinal((byte[]) bufferObjetoEntrada.readObject()));
+                    muchotexto=nombre+" "+muchotexto;
                     totalmensajessesion++;
                 }
                 if (!salido) {
+                    //Esta linea espera el mensaje de salida
                     if (muchotexto.equals("%\"Ju6A9jI2js\"%")) {
                         muchotexto = null;
-                        //salida = LocalDateTime.now().format(DateTimeFormatter.ofPattern("'Dia ' dd/MM/yyyy 'Hora del dia' hh:mm:ss.SSS"));
                         this.cerrartodo();
                         salido = true;
 
@@ -156,6 +164,8 @@ public class ManejadorCliente extends Thread {
                 cerrartodo();
                 System.out.println("error en conexion de " + nombre);
 
+            } catch (ClassNotFoundException | BadPaddingException | IllegalBlockSizeException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -167,19 +177,12 @@ public class ManejadorCliente extends Thread {
             if (!manejador.nombre.equals(this.nombre)) {
                 try {
                     mensaje="%br%"+mensaje;
-                    manejador.bufferEscribir.write(mensaje);
-                    manejador.bufferEscribir.newLine();
-                    manejador.bufferEscribir.flush();
-                } catch (IOException e) {
-                    if (e.equals("java.io.IOException: Stream closed")) {
-                        System.out.println("ce me ha cerrao bufferWritter");
-
-
-                    } else {
-                        e.printStackTrace();
-                        cerrartodo();
-                    }
-
+                    //Esta linea encripta el codigo con la clave publica del usuario previamente
+                    // pasado a bytes para luego mandarla a cada uno de los usuarios
+                    bufferObjetoSalida.writeObject(cipherencriptar.doFinal(mensaje.getBytes()));
+                    bufferObjetoSalida.flush();
+                } catch (IOException | BadPaddingException | IllegalBlockSizeException e) {
+                    e.printStackTrace();
                 }
 
             }
