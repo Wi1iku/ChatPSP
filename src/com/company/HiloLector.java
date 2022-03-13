@@ -12,9 +12,17 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.JTextArea;
 
 /**
@@ -28,37 +36,49 @@ public class HiloLector extends Thread {
     Boolean newmesage = false;
     //BufferedReader buffer;
     String mensaje;
-
-    public HiloLector(JTextArea jta, Socket socket, BufferedReader bufferedReader) {
+    Cipher descifrador;
+    PrivateKey claveprivadauser;
+    ObjectInputStream recibirobjeto;
+    public HiloLector(JTextArea jta, Socket socket, ObjectInputStream recibirobjeto, PrivateKey claveprivadauser) {
         this.jTextArea1 = jta;
         this.socket = socket;
+        this.claveprivadauser= claveprivadauser;
+        this.recibirobjeto=recibirobjeto;
+        try {
+            //inicializa desfricador
+            descifrador=Cipher.getInstance("RSA");
+            descifrador.init(Cipher.DECRYPT_MODE, claveprivadauser);
+            
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException  ex) {
+            Logger.getLogger(HiloLector.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
     @Override
     public void run() {
         try {
             sleep(800);
+            //Inicializa el buffer de recibir objetos, tiene que ir despues de un sleep.
+           // recibirobjeto= new ObjectInputStream(socket.getInputStream());
         } catch (InterruptedException ex) {
             Logger.getLogger(HiloLector.class.getName()).log(Level.SEVERE, null, ex);
         }
         System.out.println("asd111111111" + socket.isConnected());
         System.out.println("asd222222222"+ socket.isClosed());
         while (!socket.isClosed()) {
-System.out.println("as3333333"+ socket.isClosed());
+//System.out.println("as3333333"+ socket.isClosed());
             try {
               
-                if (!socket.isClosed() && !"".equals(mensaje)) {
-                    //System.out.println("conectado111111111111111");
-
+                if (!socket.isClosed() && mensaje!=null) {
                     jTextArea1.append("\n");
-                    //jTextArea1.append("111111111111111111");
-                    //asd
-                    mensaje = bufferedReader.readLine();
-                    //System.out.println("test1");
+                  //Esta línea recibe el paquete, la pasa desencripta y luego la pasa a bytes
+                  // para luego crear un string nuevo
+                    mensaje=new String(descifrador.doFinal((byte[])recibirobjeto.readObject()));
                     
                     if (mensaje != null) {
                         mensaje = mensajemayorque(mensaje);
-                    
+                        System.out.println(mensaje);
                     jTextArea1.append(mensaje);
                     System.out.println(mensaje);
                     }
@@ -78,6 +98,12 @@ System.out.println("as3333333"+ socket.isClosed());
             } catch (IOException e) {
                 e.printStackTrace();
                 cerrartodo();
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(HiloLector.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalBlockSizeException ex) {
+                Logger.getLogger(HiloLector.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (BadPaddingException ex) {
+                Logger.getLogger(HiloLector.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
@@ -85,6 +111,8 @@ System.out.println("as3333333"+ socket.isClosed());
     }
 
     String mensajemayorque(String mensaje) {
+          //Metodo que se encarga de recortar el texto para que entre en el cuadro
+          // de texto
         String mensaje1;
         String mensaje2;
         try {
