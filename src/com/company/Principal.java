@@ -27,7 +27,7 @@ public class Principal extends Thread{
     public void run() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(512);
+            keyPairGenerator.initialize(2048);
             KeyPair claves = keyPairGenerator.generateKeyPair();
              claveprivadaservidor= claves.getPrivate();
              clavepublicaservidor = claves.getPublic();

@@ -54,9 +54,7 @@ public class ManejadorCliente extends Thread {
             this.cipherdesencriptar=Cipher.getInstance("RSA");
             this.claveprivadaservidor=claveprivadaservidor;
             this.clavepublicaservidor=clavepublicaservidor;
-            System.out.println("test");
              aux= (PublicKey)bufferObjetoEntrada.readObject();
-            System.out.println("test");
         } catch (IOException e) {
             //System.out.println("Error en 1 ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo");
 
@@ -82,17 +80,21 @@ public class ManejadorCliente extends Thread {
                     //Esta parte del codigo espera a que el cliente le mande su clave publica
                     //para luego mandarle su clave publica al servidor e inicializa 2 ciphers usados
                     //para encriptar y desencripta
-                    clavepublicacliente = aux;
-                    System.out.println("test0");
-                    cipherencriptar.init(Cipher.ENCRYPT_MODE, clavepublicacliente);
-                    System.out.println("test1");
-                    cipherdesencriptar.init(Cipher.DECRYPT_MODE, claveprivadaservidor);
-                    System.out.println("test2");
-                    bufferObjetoSalida.writeObject(clavepublicaservidor);
-                    System.out.println("test3");
+                    this.clavepublicacliente = aux;
+                   // System.out.println("test0");
+                    this.cipherencriptar.init(Cipher.ENCRYPT_MODE, clavepublicacliente);
+                    //System.out.println("test1");
+                    this.cipherdesencriptar.init(Cipher.DECRYPT_MODE, claveprivadaservidor);
+                   // System.out.println("test2");
+                    this.bufferObjetoSalida.writeObject(clavepublicaservidor);
+                    //System.out.println("test3");
                     byte[] bytesnombre = (byte[]) bufferObjetoEntrada.readObject();
+                    //System.out.println("test4");
                     bytesnombre = cipherdesencriptar.doFinal(bytesnombre);
+                   // System.out.println("test5");
                     this.nombre = new String(bytesnombre);
+
+                    //System.out.println("test6");
                 } catch (ClassNotFoundException | InvalidKeyException e) {
                     System.out.println("error");
                     e.printStackTrace();
@@ -117,6 +119,7 @@ public class ManejadorCliente extends Thread {
 
     @Override
     public void run() {
+        //System.out.println("nombre de hilo "+this.getName());
         try {
             Inet4Address inet4 = (Inet4Address) socket.getInetAddress();
             ip = inet4.toString();
@@ -137,10 +140,10 @@ public class ManejadorCliente extends Thread {
                    clavepublicacliente= new String(bytesnuevos);
                    */
                     //Esta línea recibe el paquete, la pasa desencripta y luego la pasa a bytes
-                    muchotexto = new String(cipherdesencriptar.doFinal((byte[]) bufferObjetoEntrada.readObject()));
-                    muchotexto=nombre+" "+muchotexto;
+                    muchotexto = new String(this.cipherdesencriptar.doFinal((byte[]) bufferObjetoEntrada.readObject()));
                     totalmensajessesion++;
                 }
+
                 if (!salido) {
                     //Esta linea espera el mensaje de salida
                     if (muchotexto.equals("%\"Ju6A9jI2js\"%")) {
@@ -156,6 +159,7 @@ public class ManejadorCliente extends Thread {
 
                     }
                     else {
+                        muchotexto=nombre+": "+muchotexto;
                         System.out.println("cl: " + muchotexto);
                         broadcast(muchotexto);
                     }
@@ -171,16 +175,24 @@ public class ManejadorCliente extends Thread {
     }
 
     private void broadcast(String mensaje) {
-
+        //System.out.println(manejadorClientes.size());
+        //System.out.println(this.identificador+" identificador de ahora");
+        //System.out.println("nombre de hilo "+this.getName() + "identificador "+this.identificador+" nombre"+this.nombre);
+        mensaje="%br%"+mensaje;
+        int i=0;
         for (ManejadorCliente manejador :
                 manejadorClientes) {
             if (!manejador.nombre.equals(this.nombre)) {
                 try {
-                    mensaje="%br%"+mensaje;
+                    i++;
+
+
                     //Esta linea encripta el codigo con la clave publica del usuario previamente
                     // pasado a bytes para luego mandarla a cada uno de los usuarios
-                    bufferObjetoSalida.writeObject(cipherencriptar.doFinal(mensaje.getBytes()));
-                    bufferObjetoSalida.flush();
+                    // importantisimo pasar el cipher del manejador, esto me comio la cabeza hora y media aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+                    manejador.bufferObjetoSalida.writeObject(manejador.cipherencriptar.doFinal(mensaje.getBytes()));
+                    manejador.bufferObjetoSalida.flush();
+                    //System.out.println("Ciclo pasado "+i+" veces"); Este trozo cuenta cuantas veces da la vuelta hazta finalizar broadcast
                 } catch (IOException | BadPaddingException | IllegalBlockSizeException e) {
                     e.printStackTrace();
                 }
@@ -207,6 +219,12 @@ public class ManejadorCliente extends Thread {
                 //System.out.println("BufferLeer de socket "+this.socket+" cerrado\n");
                 bufferLeer.close();
             }
+            if (bufferObjetoEntrada!=null){
+            bufferObjetoEntrada.close();
+            }
+            if (bufferObjetoSalida!=null){
+                bufferObjetoSalida.close();
+            }
             //System.out.println("////////////////////////////////////////////////");
             socket.close();
             //System.out.println(this.socket+"     "+this.nombre+" nombre socket cerrado\n");
@@ -231,6 +249,7 @@ public class ManejadorCliente extends Thread {
             case "help":
             case "ayuda":
             case "man":
+                System.out.println("El usuario "+ nombre+" va a ejecutar help()");
                 help();
                 break;
             case "cerrar":
@@ -245,28 +264,30 @@ public class ManejadorCliente extends Thread {
     }
     private void comandonoreconocido(){
         try {
-            this.bufferEscribir.write("Comando no reconocido, para más ayuda, usa !!help");
-            this.bufferEscribir.newLine();
-            this.bufferEscribir.flush();
-        } catch (IOException e) {
+
+            this.bufferObjetoSalida.writeObject(this.cipherencriptar.doFinal(("!!Comando no reconocido, para más ayuda, usa !!help").getBytes()));
+            this.bufferObjetoSalida.flush();
+        } catch (IOException | BadPaddingException | IllegalBlockSizeException e) {
             e.printStackTrace();
         }
     }
     private void help(){
         try {
-            this.bufferEscribir.write("Comandos disponibles:\n" +
-                    "!!md + nombreusuario o !!mensajedirecto + nombreusuario manda un mensaje privado al usuario indicado\n" +
-                    "!!close o !!cerrar le desconecta del servidor"
-                    +"!!help despliega la ayuda de comandos\n");
-        } catch (IOException e) {
+            this.bufferObjetoSalida.writeObject(this.cipherencriptar.doFinal(("!!Comandos disponibles:\n" +
+                    "!!md + nombreusuario o !!mensajedirecto + nombreusuario manda " +
+                    "\nun mensaje privado al usuario indicado\n" +
+                    "!!close o !!cerrar le desconecta del servidor\n"
+                    +"!!help despliega la ayuda de comandos\n").getBytes()));
+            this.bufferObjetoSalida.flush();
+        } catch (IOException | BadPaddingException | IllegalBlockSizeException e) {
             e.printStackTrace();
         }
     }
     private void cerrar(){
         try {
-            this.bufferEscribir.write("%\"Ju6A9jI2js\"%");
-            this.bufferEscribir.flush();
-        } catch (IOException e) {
+            this.bufferObjetoSalida.writeObject(this.cipherencriptar.doFinal(("%\"Ju6A9jI2js\"%").getBytes()));
+            this.bufferObjetoSalida.flush();
+        } catch (IOException | BadPaddingException | IllegalBlockSizeException e) {
             e.printStackTrace();
         }
         cerrartodo();
@@ -274,21 +295,25 @@ public class ManejadorCliente extends Thread {
     private void mensajedirecto(String[] datos){
         if (datos.length!=2){
             try {
-                this.bufferEscribir.write("Comando mal introducido, por favor introduce en comando con [!!md +(espacio)+nombredeusuario]");
-                this.bufferEscribir.newLine();
-                this.bufferEscribir.flush();
-            } catch (IOException e) {
+                this.bufferObjetoSalida.writeObject(this.cipherencriptar.doFinal(("!!Comando mal introducido, por favor introduce en comando\n con [!!md +(espacio)+nombredeusuario]").getBytes()));
+                this.bufferObjetoSalida.flush();
+            } catch (IOException | BadPaddingException | IllegalBlockSizeException e) {
                 e.printStackTrace();
             }
         }else {
             ManejadorCliente userpriv = null;
             for (ManejadorCliente mane:
                  manejadorClientes) {
-                if (mane.equals(datos[1])){
-                    userpriv=mane;
+                if (mane.nombre.equals(datos[1])){
+                    try {
+                        mane.bufferObjetoSalida.writeObject(mane.cipherencriptar.doFinal(datos[0].getBytes()));
+                        mane.bufferObjetoSalida.flush();
+                    } catch (IOException | IllegalBlockSizeException | BadPaddingException exception) {
+                        exception.printStackTrace();
+                    }
                 }
             }
-            if (userpriv!=null){
+            /*if (userpriv!=null){
                 ManejadorPrivado textoprivado = new ManejadorPrivado(socket,logger,claveprivadaservidor,clavepublicaservidor,bufferEscribir,userpriv);
             }else {
 
@@ -300,8 +325,9 @@ public class ManejadorCliente extends Thread {
 
 
                 }
+                }*/
             }
 
         }
     }
-}
+
