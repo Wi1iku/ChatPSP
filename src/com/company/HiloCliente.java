@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.util.Scanner;
 
 import static com.company.Main.cerrartodo;
+import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
@@ -20,6 +21,10 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
 
 public class HiloCliente extends Thread{
     Boolean newmesage=false;
@@ -31,25 +36,29 @@ public class HiloCliente extends Thread{
     Cipher cipher;
     //private ServerSocket serverSocket;
     BufferedWriter bufferedWriter;
+    Style stylemd;
     static BufferedWriter bufferedWriterstatic;
     ObjectOutputStream enviarobjeto;
     ObjectInputStream recibirobjeto;
+    JTextPane jTextPane;
     //BufferedReader bufferedReader;
-    public HiloCliente(Socket socket, String nick, PublicKey clavepublica, ObjectInputStream recibirobjeto, ObjectOutputStream enviarobjeto){
+    public HiloCliente(Socket socket, String nick, PublicKey clavepublica, ObjectInputStream recibirobjeto, ObjectOutputStream enviarobjeto, JTextPane jTextPane){
         try {
             
             this.cipher = Cipher.getInstance("RSA");
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchPaddingException ex) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException ex) {
             Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
+        this.jTextPane=jTextPane;
         this.socket=socket;
         this.nick=nick;
         this.clavepublica = clavepublica;
         this.recibirobjeto=recibirobjeto;
         this.enviarobjeto=enviarobjeto;
+        //StyleConstants.setForeground(stylenegro, Color.black);
         bucleinfinito=true;
+         stylemd= jTextPane.addStyle("", null);
+         StyleConstants.setForeground(stylemd, Color.pink);
        /* try {
             
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
@@ -67,12 +76,36 @@ public class HiloCliente extends Thread{
         }
     }
     void enviarpaquetemensaje(String mensaje){
+        String mensaje2 = mensaje;
         try {
             byte[] mensajeCifrado = cipher.doFinal(mensaje.getBytes());
-           
+            mensaje2=mensaje2;
             enviarobjeto.writeObject(mensajeCifrado);
             enviarobjeto.flush();
-        } catch (IllegalBlockSizeException | BadPaddingException | IOException ex) {
+            if(mensaje2.startsWith("!!md")){
+                mensaje2=mensaje2.substring(4);
+                mensaje2 = "Tu a"+mensaje2+"\n";
+                           jTextPane.getStyledDocument().insertString(jTextPane.getStyledDocument().getLength(), mensaje2,stylemd);
+
+            }else if (mensaje2.startsWith("!!")){
+                mensaje2=mensaje2+"\n";
+                jTextPane.getStyledDocument().insertString(jTextPane.getStyledDocument().getLength(), mensaje2, null);
+            }else{
+            mensaje2= nick+": "+mensaje2+"\n";
+           jTextPane.getStyledDocument().insertString(jTextPane.getStyledDocument().getLength(), mensaje2, null);
+            }
+           
+           newmesage = true;
+
+                    Main.jScrollPane2.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
+                        public void adjustmentValueChanged(AdjustmentEvent e) {
+                            if (newmesage) {
+                                e.getAdjustable().setValue(e.getAdjustable().getMaximum());
+                                newmesage = false;
+                            }
+                        }
+                    });
+        } catch (IllegalBlockSizeException | BadPaddingException | IOException | BadLocationException  ex) {
             Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
         
@@ -112,16 +145,22 @@ public class HiloCliente extends Thread{
             Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    static void enviarmensajecerrar(){
-        String mensaje = "%\"Ju6A9jI2js\"%";
+    void enviarmensajecerrar(){
         try {
-            bufferedWriterstatic.write(mensaje);
-            bufferedWriterstatic.newLine();
-            bufferedWriterstatic.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            String mensaje = "%\"Ju6A9jI2js\"%";
+            byte[] mensajeCifrado = cipher.doFinal((mensaje).getBytes());
+                    
+            enviarobjeto.writeObject(mensajeCifrado);
+            enviarobjeto.flush();
+            cerrartodo();
+            
+            
+            
+        }catch (IOException | IllegalBlockSizeException | BadPaddingException e) {
+                e.printStackTrace();
+            }
     }
+    //Sin uso
      void enviarmensaje(String mensaje){
           mensaje=nick+": "+mensaje;
         try {
@@ -129,10 +168,11 @@ public class HiloCliente extends Thread{
             bufferedWriter.newLine();
             bufferedWriter.flush();
             mensaje=mensajemayorque(mensaje);
-             Main.jTextArea1.append(mensaje+"\n");
+            
+            // Main.jTextArea1.append(mensaje+"\n");
                newmesage=true;
                             
-             Main.jScrollPane1.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {  
+             Main.jScrollPane2.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {  
 public void adjustmentValueChanged(AdjustmentEvent e) {  
     if(newmesage){
  e.getAdjustable().setValue(e.getAdjustable().getMaximum());

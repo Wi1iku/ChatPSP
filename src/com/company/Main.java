@@ -5,6 +5,7 @@
  */
 package com.company;
 
+import java.awt.Color;
 import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,16 +22,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
 
 
 public class Main extends javax.swing.JFrame {
   static Socket socket = null;
     static BufferedReader bufferedReader;
-            ObjectOutputStream enviarobjeto;
-            ObjectInputStream recibirobjeto;
+            static private ObjectOutputStream enviarobjeto;
+            static private ObjectInputStream recibirobjeto;
     static protected PublicKey clavepublicaservidor;
-            PrivateKey claveprivadacliente;
-            PublicKey clavepublidacliente;
+            private PrivateKey claveprivadacliente;
+           private PublicKey clavepublidacliente;
  int i =0;
     static HiloCliente hiloCliente;
 
@@ -68,13 +72,14 @@ public class Main extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         textonombre = new javax.swing.JTextField();
         jTextField2 = new javax.swing.JTextField();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
         jTextField1 = new javax.swing.JTextField();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jButton3.setEnabled(false);
         jButton3.setVisible(false);
+
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTextPane1 = new javax.swing.JTextPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -94,12 +99,6 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
-        jTextArea1.setEditable(false);
-        jTextArea1.setColumns(1);
-        jTextArea1.setRows(1);
-        jTextArea1.setWrapStyleWord(true);
-        jScrollPane1.setViewportView(jTextArea1);
-
         jTextField1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTextField1ActionPerformed(evt);
@@ -107,6 +106,7 @@ public class Main extends javax.swing.JFrame {
         });
 
         jButton2.setText("Enviar");
+        jButton2.setEnabled(false);
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
@@ -120,6 +120,11 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
+        jScrollPane2.setBorder(null);
+
+        jTextPane1.setEditable(false);
+        jScrollPane2.setViewportView(jTextPane1);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -127,11 +132,6 @@ public class Main extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(28, 28, 28)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jTextField1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton2)
-                        .addGap(21, 21, 21))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(layout.createSequentialGroup()
@@ -139,7 +139,14 @@ public class Main extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButton1)
                                 .addGap(0, 0, Short.MAX_VALUE))
-                            .addComponent(jScrollPane1)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addComponent(jTextField1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jButton2)))
+                        .addGap(21, 21, 21))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(textonombre, javax.swing.GroupLayout.PREFERRED_SIZE, 192, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 85, Short.MAX_VALUE)
@@ -158,7 +165,7 @@ public class Main extends javax.swing.JFrame {
                     .addComponent(jButton1)
                     .addComponent(jButton3))
                 .addGap(32, 32, 32)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -181,7 +188,10 @@ public class Main extends javax.swing.JFrame {
             //Se tiene que declarar output stream para que inputstream funcione
             enviarobjeto = new ObjectOutputStream(socket.getOutputStream());
             recibirobjeto = new ObjectInputStream(socket.getInputStream());
-            jTextArea1.append("Conectado a la sala de chat\n");
+            
+          Style style = jTextPane1.addStyle("", null);
+          StyleConstants.setForeground(style, Color.MAGENTA);
+          StyleConstants.setBackground(style, Color.black);
             
         } catch (IOException e) {
             e.printStackTrace();
@@ -192,8 +202,8 @@ public class Main extends javax.swing.JFrame {
         
         //System.out.println("llegado");
         
-        hiloCliente= new HiloCliente(socket,nombre,clavepublidacliente,recibirobjeto, enviarobjeto);
-        HiloLector hiloLector = new HiloLector(jTextArea1, socket,recibirobjeto,claveprivadacliente);
+        hiloCliente= new HiloCliente(socket,nombre,clavepublidacliente,recibirobjeto, enviarobjeto, jTextPane1);
+        HiloLector hiloLector = new HiloLector (jTextPane1, socket,recibirobjeto,claveprivadacliente,jButton2);
         //System.out.println("test");
         //System.out.println("llegado2");
         hiloCliente.start();
@@ -226,8 +236,8 @@ public class Main extends javax.swing.JFrame {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         //Envia mensaje de cerrado
-        hiloCliente.enviarpaquetemensaje("%\"Ju6A9jI2js\"%");
-        cerrartodo();
+        hiloCliente.enviarmensajecerrar();
+        jButton2.setEnabled(false);
         jButton3.setVisible(false);
         jButton3.setEnabled(false);
         
@@ -250,7 +260,7 @@ public class Main extends javax.swing.JFrame {
                                              {
         @Override
               public void run(){
-          HiloCliente.enviarmensajecerrar();
+          
         cerrartodo();
         }
 
@@ -270,13 +280,18 @@ public class Main extends javax.swing.JFrame {
                 System.out.println("no se ha podido cerrar socket");
             }
         }
-            if (bufferedReader!=null){
-                try {
-                    bufferedReader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+        
+      try{
+        if (enviarobjeto!=null) {
+            enviarobjeto.close();
+        }
+          if (recibirobjeto!=null) {
+              recibirobjeto.close();
+          }
+      }catch (Exception ex) {
+            System.out.println("metodos cerrados");
+        }
+            
          {
             
         }
@@ -290,10 +305,10 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
-    static javax.swing.JScrollPane jScrollPane1;
-    static javax.swing.JTextArea jTextArea1;
+    protected static javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
+    javax.swing.JTextPane jTextPane1;
     private javax.swing.JTextField textonombre;
     // End of variables declaration//GEN-END:variables
 
@@ -303,6 +318,15 @@ public class Main extends javax.swing.JFrame {
       } catch (IOException ex) {
           System.out.println("usado metodo cerrar");
       }
-    }
+      try{
+        if (enviarobjeto!=null) {
+            enviarobjeto.close();
+        }
+          if (recibirobjeto!=null) {
+              recibirobjeto.close();
+          }
+      }catch (Exception ex) {
+            
+        }}
         }
 
