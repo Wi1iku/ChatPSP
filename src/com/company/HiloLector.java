@@ -58,29 +58,48 @@ public class HiloLector extends Thread {
     @Override
     public void run() {
         try {
-            sleep(800);
+            //Este hilo si o si se tiene que inicializar mas tarde que el hilo cliente
+            sleep(1200);
             //Inicializa el buffer de recibir objetos, tiene que ir despues de un sleep.
            // recibirobjeto= new ObjectInputStream(socket.getInputStream());
         } catch (InterruptedException ex) {
             Logger.getLogger(HiloLector.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.println("asd111111111" + socket.isConnected());
-        System.out.println("asd222222222"+ socket.isClosed());
+        //System.out.println("asd111111111" + socket.isConnected());
+        //System.out.println("asd222222222"+ socket.isClosed());
         while (!socket.isClosed()) {
 //System.out.println("as3333333"+ socket.isClosed());
             try {
-              
-                if (!socket.isClosed() && mensaje!=null) {
-                    jTextArea1.append("\n");
+                if (!socket.isClosed()) {
+                    jTextArea1.append("\n");                    
                   //Esta línea recibe el paquete, la pasa desencripta y luego la pasa a bytes
                   // para luego crear un string nuevo
-                    mensaje=new String(descifrador.doFinal((byte[])recibirobjeto.readObject()));
+                    System.out.println("intento leer objeto");
+                    Object object = recibirobjeto.readObject();
+                    System.out.println("objeto leido");
+                    byte[] paquetenuevo = (byte[])object;
+                    paquetenuevo=descifrador.doFinal(paquetenuevo);
+                    mensaje= new String(paquetenuevo);
+                    System.out.println(mensaje);
                     
                     if (mensaje != null) {
+                        if(mensaje.startsWith("%br%")){
+                            mensaje=mensaje.substring(4);
                         mensaje = mensajemayorque(mensaje);
                         System.out.println(mensaje);
                     jTextArea1.append(mensaje);
-                    System.out.println(mensaje);
+                    System.out.println(mensaje+" mensaje broadcast");
+                        }
+                        else if (mensaje.startsWith("!!")) {
+                            mensaje= mensaje.substring(2);
+                            mensaje="[Comando] "+mensaje;
+                            //mensaje=mensajemayorque(mensaje); no es necesario.
+                                                jTextArea1.append(mensaje);
+                            System.out.println(mensaje+" mensaje comando");
+                        }
+                        else{
+                        
+                        }
                     }
 
                     newmesage = true;

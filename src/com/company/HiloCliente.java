@@ -89,8 +89,11 @@ public class HiloCliente extends Thread{
             Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
-           Main.clavepublicaservidor=(PublicKey)recibirobjeto.readObject();
-            System.out.println("ClavePublicaRecibida");
+           // System.out.println(mensaje+"ovjetoooooo");
+            Object object = recibirobjeto.readObject();
+            //System.out.println(object+"objeto666");
+           Main.clavepublicaservidor=(PublicKey)object;
+            //System.out.println("ClavePublicaRecibida");
                     } catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
         }

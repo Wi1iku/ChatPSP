@@ -37,7 +37,7 @@ public class Main extends javax.swing.JFrame {
     public Main() {
       try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(512);
+            keyPairGenerator.initialize(2048);
             KeyPair claves = keyPairGenerator.generateKeyPair();
              claveprivadacliente= claves.getPrivate();
              clavepublidacliente = claves.getPublic();
@@ -190,7 +190,7 @@ public class Main extends javax.swing.JFrame {
         }
              
         
-        System.out.println("llegado");
+        //System.out.println("llegado");
         
         hiloCliente= new HiloCliente(socket,nombre,clavepublidacliente,recibirobjeto, enviarobjeto);
         HiloLector hiloLector = new HiloLector(jTextArea1, socket,recibirobjeto,claveprivadacliente);
@@ -277,6 +277,9 @@ public class Main extends javax.swing.JFrame {
                     e.printStackTrace();
                 }
             }
+         {
+            
+        }
             
 
 
