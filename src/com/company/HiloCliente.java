@@ -1,18 +1,15 @@
 package com.company;
 
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
 
 import static com.company.Main.cerrartodo;
 import java.awt.Color;
-import java.awt.Rectangle;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -79,7 +76,6 @@ public class HiloCliente extends Thread{
         String mensaje2 = mensaje;
         try {
             byte[] mensajeCifrado = cipher.doFinal(mensaje.getBytes());
-            mensaje2=mensaje2;
             enviarobjeto.writeObject(mensajeCifrado);
             enviarobjeto.flush();
             if(mensaje2.startsWith("!!md")){
@@ -98,6 +94,7 @@ public class HiloCliente extends Thread{
            newmesage = true;
 
                     Main.jScrollPane2.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
+                        @Override
                         public void adjustmentValueChanged(AdjustmentEvent e) {
                             if (newmesage) {
                                 e.getAdjustable().setValue(e.getAdjustable().getMaximum());
@@ -116,9 +113,7 @@ public class HiloCliente extends Thread{
             sleep(800);
             enviarobjeto.writeObject(clavepublica);
             System.out.println("objetoenviado");
-        } catch (IOException ex) {
-            Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InterruptedException ex) {
+        } catch (IOException | InterruptedException ex) {
             Logger.getLogger(HiloCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
@@ -161,7 +156,7 @@ public class HiloCliente extends Thread{
             }
     }
     //Sin uso
-     void enviarmensaje(String mensaje){
+     /*void enviarmensaje(String mensaje){
           mensaje=nick+": "+mensaje;
         try {
             bufferedWriter.write(mensaje);
@@ -173,6 +168,7 @@ public class HiloCliente extends Thread{
                newmesage=true;
                             
              Main.jScrollPane2.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {  
+@Override
 public void adjustmentValueChanged(AdjustmentEvent e) {  
     if(newmesage){
  e.getAdjustable().setValue(e.getAdjustable().getMaximum());
@@ -185,7 +181,7 @@ public void adjustmentValueChanged(AdjustmentEvent e) {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
      String mensajemayorque(String mensaje) {
         String mensaje1;
         String mensaje2;
@@ -222,7 +218,8 @@ public void adjustmentValueChanged(AdjustmentEvent e) {
         teclao.nextLine();
         return mensaje;
     }
-    private void cerrar(){
+    /*Sin uso
+     private void cerrar(){
         bucleinfinito=false;
         if (bufferedWriter!=null){
             try {
@@ -234,16 +231,16 @@ public void adjustmentValueChanged(AdjustmentEvent e) {
         if (bufferedWriterstatic!=null){
             try {
                 bufferedWriterstatic.close();
-            } catch (Exception e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         cerrartodo();
 
-    }
+    }*/
     @Override
     public void run() {
-        String mensajecerrar;
+        
         enviar1ermensaje(nick);
         /*  No hace falta tener un bucle aqui.
         while (bucleinfinito){

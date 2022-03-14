@@ -6,10 +6,8 @@
 package com.company;
 
 import java.awt.Color;
-import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -18,11 +16,8 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 
@@ -52,9 +47,7 @@ public class Main extends javax.swing.JFrame {
 
         try {
             Cipher cipher = Cipher.getInstance("RSA");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
             e.printStackTrace();
         }
         initComponents();
@@ -252,6 +245,7 @@ public class Main extends javax.swing.JFrame {
     public static void main(String args[]) {
         
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 new Main().setVisible(true);
             }
@@ -288,7 +282,7 @@ public class Main extends javax.swing.JFrame {
           if (recibirobjeto!=null) {
               recibirobjeto.close();
           }
-      }catch (Exception ex) {
+      }catch (IOException ex) {
             System.out.println("metodos cerrados");
         }
             
@@ -312,6 +306,8 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JTextField textonombre;
     // End of variables declaration//GEN-END:variables
 
+/*    
+    Sin uso
     private void cerrar() {
       try {
           socket.close();
@@ -325,8 +321,8 @@ public class Main extends javax.swing.JFrame {
           if (recibirobjeto!=null) {
               recibirobjeto.close();
           }
-      }catch (Exception ex) {
+      }catch (IOException ex) {
             
-        }}
+       }}*/
         }
 

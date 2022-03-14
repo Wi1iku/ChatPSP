@@ -5,13 +5,10 @@
  */
 package com.company;
 
-import static com.company.Main.bufferedReader;
 import static com.company.Main.cerrartodo;
-import static com.company.Main.socket;
 import java.awt.Color;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
@@ -25,7 +22,6 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.JButton;
-import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
@@ -84,9 +80,7 @@ public class HiloLector extends Thread {
                         jButton2.setEnabled(true);
             //Inicializa el buffer de recibir objetos, tiene que ir despues de un sleep.
            // recibirobjeto= new ObjectInputStream(socket.getInputStream());
-        } catch (InterruptedException ex) {
-            Logger.getLogger(HiloLector.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (BadLocationException ex) {
+        } catch (InterruptedException | BadLocationException ex) {
             Logger.getLogger(HiloLector.class.getName()).log(Level.SEVERE, null, ex);
         }
         //System.out.println("asd111111111" + socket.isConnected());
@@ -134,6 +128,7 @@ public class HiloLector extends Thread {
                     newmesage = true;
 
                     Main.jScrollPane2.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
+                        @Override
                         public void adjustmentValueChanged(AdjustmentEvent e) {
                             if (newmesage) {
                                 e.getAdjustable().setValue(e.getAdjustable().getMaximum());
