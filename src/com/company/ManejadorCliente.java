@@ -147,6 +147,7 @@ public class ManejadorCliente extends Thread {
                 if (!salido) {
                     //Esta linea espera el mensaje de salida
                     if (muchotexto.equals("%\"Ju6A9jI2js\"%")) {
+                        System.out.println("Alguien sale");
                         muchotexto = null;
                         this.cerrartodo();
                         salido = true;
@@ -165,8 +166,9 @@ public class ManejadorCliente extends Thread {
                     }
                 }
             } catch (IOException e) {
+                System.out.println("Error de conexion de " + nombre);
                 cerrartodo();
-                System.out.println("error en conexion de " + nombre);
+
 
             } catch (ClassNotFoundException | BadPaddingException | IllegalBlockSizeException e) {
                 e.printStackTrace();
@@ -178,7 +180,7 @@ public class ManejadorCliente extends Thread {
         //System.out.println(manejadorClientes.size());
         //System.out.println(this.identificador+" identificador de ahora");
         //System.out.println("nombre de hilo "+this.getName() + "identificador "+this.identificador+" nombre"+this.nombre);
-        mensaje="%br%"+mensaje;
+        mensaje="%br%&&"+mensaje;
         int i=0;
         for (ManejadorCliente manejador :
                 manejadorClientes) {
@@ -203,7 +205,7 @@ public class ManejadorCliente extends Thread {
 
     private void cerrartodo() {
         try {
-
+            System.out.println("Cliente "+nombre+" sale del servidor");
             salida = LocalDateTime.now().format(DateTimeFormatter.ofPattern("'[Dia]' dd/MM/yyyy '[Hora del dia]' HH:mm:ss.SSS"));
             logg = "Usuario: " + nombre + " /conexion: " + entrada + " /desconexion: " + salida + " /total mensajes: " + totalmensajessesion + "/IP usuario: " + ip + " /";
             salido = true;
@@ -239,8 +241,25 @@ public class ManejadorCliente extends Thread {
     }
     private void comandocliente(String comadno){
         String[] aux;
+        String[] auxFinal= new String[3];
         aux=comadno.split(" ");
-        switch (aux[0]){
+        if (aux.length>2){
+        StringBuilder textofinal= new StringBuilder();
+        textofinal.append(nombre+": ");
+        if (aux.length>1){
+            for (int i = 2; i <aux.length; i++) {
+                textofinal.append(aux[i]).append(" ");
+            }
+        }
+        System.out.println(textofinal.toString()+"&&&&&&&&&&&&&&&&&&&&");
+        auxFinal[0]=aux[0];
+        auxFinal[1]=aux[1];
+        auxFinal[2]=textofinal.toString();}
+        else {
+            auxFinal=new String[aux.length];
+            auxFinal=aux;
+        }
+        switch (auxFinal[0]){
             case "md":
             case "mensajedirecto":
             case"mensaje_directo":
@@ -255,7 +274,8 @@ public class ManejadorCliente extends Thread {
             case "cerrar":
             case "close":
             case "stop":
-
+                System.out.println("El usuario "+nombre+" intenta hacer close()");
+                cerrar();
                 break;
             default:
                 comandonoreconocido();
@@ -274,10 +294,10 @@ public class ManejadorCliente extends Thread {
     private void help(){
         try {
             this.bufferObjetoSalida.writeObject(this.cipherencriptar.doFinal(("!!Comandos disponibles:\n" +
-                    "!!md + nombreusuario o !!mensajedirecto + nombreusuario manda " +
-                    "\nun mensaje privado al usuario indicado\n" +
-                    "!!close o !!cerrar le desconecta del servidor\n"
-                    +"!!help despliega la ayuda de comandos\n").getBytes()));
+                    "!!md + nombreusuario o !!mensajedirecto + nombreusuario + mensaje, manda\n" +
+                    "un mensaje privado al usuario indicado.\n" +
+                    "!!close o !!cerrar le desconecta del servidor.\n"
+                    +"!!help despliega la ayuda de comandos.\n").getBytes()));
             this.bufferObjetoSalida.flush();
         } catch (IOException | BadPaddingException | IllegalBlockSizeException e) {
             e.printStackTrace();
@@ -293,9 +313,9 @@ public class ManejadorCliente extends Thread {
         cerrartodo();
     }
     private void mensajedirecto(String[] datos){
-        if (datos.length!=2){
+        if (datos.length!=3){
             try {
-                this.bufferObjetoSalida.writeObject(this.cipherencriptar.doFinal(("!!Comando mal introducido, por favor introduce en comando\n con [!!md +(espacio)+nombredeusuario]").getBytes()));
+                this.bufferObjetoSalida.writeObject(this.cipherencriptar.doFinal(("!!Comando mal introducido, por favor introduce en comando\n con [!!md +(espacio)+nombredeusuario+mensaje]").getBytes()));
                 this.bufferObjetoSalida.flush();
             } catch (IOException | BadPaddingException | IllegalBlockSizeException e) {
                 e.printStackTrace();
@@ -306,7 +326,7 @@ public class ManejadorCliente extends Thread {
                  manejadorClientes) {
                 if (mane.nombre.equals(datos[1])){
                     try {
-                        mane.bufferObjetoSalida.writeObject(mane.cipherencriptar.doFinal(datos[0].getBytes()));
+                        mane.bufferObjetoSalida.writeObject(mane.cipherencriptar.doFinal(("%md%"+"Md de: "+datos[1]+": "+datos[2]).getBytes()));
                         mane.bufferObjetoSalida.flush();
                     } catch (IOException | IllegalBlockSizeException | BadPaddingException exception) {
                         exception.printStackTrace();
